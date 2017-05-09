@@ -60,12 +60,51 @@ var Game = (function () {
                 Laya.stage.addChild(bullet);
             }
         }
+        //检测碰撞
+        for (var i = Laya.stage.numChildren - 1; i > 0; i--) {
+            var role1 = Laya.stage.getChildAt(i);
+            if (role1.hp < 1) continue; //忽略，继续检测别的
+            for (var j = i - 1; j > 0; j--) {
+                if (!role1.visible) continue;
+                var role2 = Laya.stage.getChildAt(j);
+
+                if (role2.hp > 0 && role1.camp != role2.camp) {
+                    var hitRadius = role1.hitRadius + role2.hitRadius;
+                    if (Math.abs(role1.x - role2.x) < hitRadius && Math.abs(role1.y - role2.y) < hitRadius) {
+                        loseHp(role1, 1);
+                        loseHp(role2, 1);
+                    }
+                }
+            }
+        }
+        //主角死亡，游戏结束
+        if (this.hero.hp < 1) {
+            Laya.timer.clear(this, onLoop);
+        }
+
         //每隔30帧创建新的飞机
         if (Laya.timer.currFrame % 60 == 0) {
             createEnemy(2);
         }
     }
 
+    //掉血
+    //子弹 忽略
+    //主角碰到敌机掉血，敌机碰到子弹掉血
+    function loseHp(role, loseHp) {
+        role.hp -= loseHp;
+        if (role.hp > 0) {
+            role.playAction("hit");
+        }
+        else {
+            if (role.isButtlet) {
+                role.visible = false;
+            }
+            else {
+                role.playAction("down");
+            }
+        }
+    }
     //鼠标移动事件
     function onMouseMove() {
         this.hero.pos(Laya.stage.mouseX, Laya.stage.mouseY);
