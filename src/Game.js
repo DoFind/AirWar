@@ -1,5 +1,20 @@
 var Game = (function () {
     (function Game() {
+        //子弹偏移位置
+        this.bulletPos = [[0], [-15, 15], [-30, 0, 30], [-45, -15, 15, 45]];
+        //关卡等级
+        this.level = 0;
+        //积分成绩
+        this.score = 0;
+        //升级等级所需的成绩数量
+        this.levelUpScore = 0;
+        //子弹级别
+        this.bulletLevel = 0;
+
+        this.hps = [1, 1, 3];
+        this.speeds = [3, 2, 1];
+        this.hitRadius = [15, 30, 70];
+
         //初始化引擎
         Laya.init(400, 852);
         //创建循环滚动背景
@@ -13,7 +28,7 @@ var Game = (function () {
     function onLoaded() {
         //创建主角
         this.hero = new Role();
-        this.hero.init("hero", 0, 1, 0, 30);
+        this.hero.init("hero", 0, 10, 0, 30);
         this.hero.shootType = 1;
         //设置主角的位置
         this.hero.pos(200, 500);
@@ -42,24 +57,32 @@ var Game = (function () {
                     Laya.Pool.recover("role", role);
                 }
             }
-        }
-        //处理发射子弹的逻辑
-        if (role.shootType > 0) {
-            var time = Laya.Browser.now();
-            if (time > role.shootTime) {
-                role.shootTime = time + role.shootInterval;
-                //创建子弹
-                var bullet = Laya.Pool.getItemByClass("role", Role);
-                //初始化子弹信息
-                bullet.init("bullet1", role.camp, 1, -5, 1);
-                //设置角色类型为子弹类型
-                bullet.isButtlet = true;
-                //设置子弹发射的初始化位置
-                bullet.pos(role.x, role.y - role.hitRadius - 10);
-                //添加到舞台
-                Laya.stage.addChild(bullet);
+
+            //处理发射子弹的逻辑
+            if (role.shootType > 0) {
+                var time = Laya.Browser.now();
+                if (time > role.shootTime) {
+                    role.shootTime = time + role.shootInterval;
+                    this.pos = this.bulletPos[role.shootType - 1];
+
+                    for (var index = 0; index < pos.length; index++) {
+
+                        //创建子弹
+                        var bullet = Laya.Pool.getItemByClass("role", Role);
+
+                        //初始化子弹信息
+                        bullet.init("bullet1", role.camp, 1, -4 - role.shootType - Math.floor(this.level / 15), 1, 1);
+                        //设置角色类型为子弹类型
+                        bullet.isButtlet = true;
+                        //设置子弹发射的初始化位置
+                        bullet.pos(role.x + this.pos[index], role.y - role.hitRadius - 10);
+                        //添加到舞台
+                        Laya.stage.addChild(bullet);
+                    }
+                }
             }
         }
+
         //检测碰撞
         for (var i = Laya.stage.numChildren - 1; i > 0; i--) {
             var role1 = Laya.stage.getChildAt(i);
@@ -93,17 +116,49 @@ var Game = (function () {
     //主角碰到敌机掉血，敌机碰到子弹掉血
     function loseHp(role, loseHp) {
         role.hp -= loseHp;
-        if (role.hp > 0) {
-            role.playAction("hit");
+
+        //吃炸药包了
+        if (role.heroType === 2) {
+            //吃一个道具，子弹升级+1
+            this.bulletLevel++;
+            //子弹升2级，子弹数量+1，最大上限为4
+            this.hero.shootType = Math.min(Math.floor(this.bulletLevel / 2) + 1, 4);
+            //子弹级别越高，发射频率越快
+            this.hero.shootInterval = 500 - 20 * (this.bulletLevel > 20 ? 20 : this.bulletLevel);
+            //隐藏道具
+            role.visible = false;
+        }
+        //吃血瓶了
+        else if (role.heroType === 3) {
+            //血量+1，最大上限为10
+            this.hero.hp++;
+            if (this.hero.hp > 10) this.hero.hp = 10;
+            //隐藏道具
+            role.visible = false;
         }
         else {
-            if (role.isButtlet) {
-                role.visible = false;
+            if (role.hp > 0) {
+                role.playAction("hit");
             }
             else {
-                role.playAction("down");
+                if (role.isButtlet) {
+                    role.visible = false;
+                }
+                else {
+                    role.playAction("down");
+                    //击中boss
+                    if (role.type === "enemy3") {
+                        var type = Math.random() < 0.7 ? 2 : 3;
+                        var item = Laya.Pool.getItemByClass("role", Role);
+                        item.init("ufo" + type, role.camp, 1, 1, 15, type);
+                        item.pos(role.x, role.y);
+                        Laya.stage.addChild(item);
+                    }
+                }
             }
         }
+
+
     }
     //鼠标移动事件
     function onMouseMove() {
@@ -111,9 +166,6 @@ var Game = (function () {
     }
 
     //创建敌机
-    this.hps = [1, 2, 10];
-    this.speeds = [3, 2, 1];
-    this.hitRadius = [15, 30, 70];
     function createEnemy(num) {
 
         for (var i = 0; i < num; i++) {

@@ -11,7 +11,10 @@ var Role = (function (_super) {
 
     var _proto = Role.prototype;
 
-    _proto.init = function (_type, _camp, _hp, _speed, _hitRadius) {
+    _proto.init = function (_type, _camp, _hp, _speed, _hitRadius, _heroType = 0) {
+        
+        //角色类型 0普通 1子弹 2炸药 3药包
+        this.heroType = _heroType;
 
         //飞机类型
         this.type = _type;
@@ -34,7 +37,6 @@ var Role = (function (_super) {
         this.action = "";
         //是否是子弹
         this.isBullet = false;
-        // this.visible = true;
 
         if (!Role.cached) {
             Role.cached = true;
@@ -57,6 +59,10 @@ var Role = (function (_super) {
             //子弹
             Laya.Animation.createFrames(["war/bullet1.png"], "bullet1_fly");
 
+            //强化包
+            Laya.Animation.createFrames(["war/ufo1.png"], "ufo2_fly");
+            //血量包
+            Laya.Animation.createFrames(["war/ufo2.png"], "ufo3_fly");
         }
 
 
