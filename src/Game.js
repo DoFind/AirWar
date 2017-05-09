@@ -11,7 +11,7 @@ var Game = (function () {
         //子弹级别
         this.bulletLevel = 0;
 
-        this.hps = [1, 1, 3];
+        this.hps = [1, 2, 10];
         this.speeds = [3, 2, 1];
         this.hitRadius = [15, 30, 70];
 
@@ -28,7 +28,7 @@ var Game = (function () {
     function onLoaded() {
         //创建主角
         this.hero = new Role();
-        this.hero.init("hero", 0, 10, 0, 30);
+        this.hero.init("hero", 0, 3, 0, 30);
         this.hero.shootType = 1;
         //设置主角的位置
         this.hero.pos(200, 500);
