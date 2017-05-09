@@ -11,9 +11,9 @@ var Game = (function () {
         //子弹级别
         this.bulletLevel = 0;
 
-        this.hps = [1, 2, 10];
-        this.speeds = [3, 2, 1];
-        this.hitRadius = [15, 30, 70];
+        // this.hps = [1, 2, 10];
+        // this.speeds = [3, 2, 1];
+        this.radius = [15, 30, 70];
 
         //初始化引擎
         Laya.init(400, 852);
@@ -96,6 +96,13 @@ var Game = (function () {
                     if (Math.abs(role1.x - role2.x) < hitRadius && Math.abs(role1.y - role2.y) < hitRadius) {
                         loseHp(role1, 1);
                         loseHp(role2, 1);
+
+                        this.score++;
+                        if (this.score > this.levelUpScore) {
+                            this.level++;
+                            //提高下一级的难度
+                            this.levelUpScore += this.level * 5;
+                        }
                     }
                 }
             }
@@ -106,8 +113,28 @@ var Game = (function () {
         }
 
         //每隔30帧创建新的飞机
-        if (Laya.timer.currFrame % 60 == 0) {
-            createEnemy(2);
+        // if (Laya.timer.currFrame % 60 == 0) {
+        //     createEnemy(2);
+        // }
+
+        //敌机的变化  创建时间间隔，飞行速度，血量，数量
+        var curTime = this.level < 30 ? this.level * 2 : 60;
+        var speedUp = Math.floor(this.level / 6);
+        var hpUp = Math.floor(this.level / 8);
+        var numUp = Math.floor(this.level / 10);
+
+        //小飞机
+        if (Laya.timer.currFrame % (80 - curTime) === 0) {
+            createEnemy(0, 2 + numUp, 3 + speedUp, 1);
+        }
+        //中飞机
+        if (Laya.timer.currFrame % (150 - curTime) === 0) {
+            createEnemy(1, 1 + numUp, 2 + speedUp, 2 + hpUp * 2);
+        }
+        //大boss  
+        //Warn!! 创建出来的全是小飞机，有打不死的小飞机  哈哈 贴图错了(第一个类型参数错了)
+        if (Laya.timer.currFrame % (900 - curTime) === 0) {
+            createEnemy(2, 1, 1 + speedUp, 10 + hpUp * 6);
         }
     }
 
@@ -166,19 +193,19 @@ var Game = (function () {
     }
 
     //创建敌机
-    function createEnemy(num) {
+    function createEnemy(type, num, speed, hp) {
 
         for (var i = 0; i < num; i++) {
             //随机出现敌人
-            var r = Math.random();
+            //var r = Math.random();
             //根据随机数随机敌人
-            var type = r < 0.7 ? 0 : r < 0.95 ? 1 : 2;
+            //var type = r < 0.7 ? 0 : r < 0.95 ? 1 : 2;
             //创建敌人
             //var enemy = new Role();
             //从对象池创建对象
             var enemy = Laya.Pool.getItemByClass("role", Role);
             //初始化角色，并赋值
-            enemy.init("enemy" + (type + 1), 1, this.hps[type], speeds[type], hitRadius[type]);
+            enemy.init("enemy" + (type + 1), 1, hp, speed, this.radius[type]);
             //随机位置
             enemy.pos(Math.random() * 360 + 40, Math.random() * -100);
             //添加到舞台
