@@ -92,9 +92,8 @@ function onLoop() {
         var role = this.roleBox.getChildAt(i);
         if (role && role.speed) {
             role.y += role.speed;
-            if (role.y > 1000 || !role.visible || (role.isButtlet && role.y < -20)) {
+            if (role.y > 1000 || !role.visible || (role.heroType > 0 && role.y < -20)) {
                 role.removeSelf();
-                role.isButtlet = false;
                 role.visible = true;
                 Laya.Pool.recover("role", role);
             }
@@ -114,13 +113,12 @@ function onLoop() {
 
                     //初始化子弹信息
                     bullet.init("bullet1", role.camp, 1, -4 - role.shootType - Math.floor(this.level / 15), 1, 1);
-                    //设置角色类型为子弹类型
-                    bullet.isButtlet = true;
                     //设置子弹发射的初始化位置
                     bullet.pos(role.x + this.pos[index], role.y - role.hitRadius - 10);
                     //添加到舞台
                     this.roleBox.addChild(bullet);
                 }
+                Laya.SoundManager.playSound("res/sound/bullet.mp3");
             }
         }
     }
@@ -157,6 +155,8 @@ function onLoop() {
     //主角死亡，游戏结束
     if (this.hero.hp < 1) {
         Laya.timer.clear(this, onLoop);
+        Laya.SoundManager.playSound("res/sound/game_over.mp3");
+
         this.gameInfoUI.infoLabel.text = "GAME OVER! 分数：" + this.score + "\n点击这里重新开始";
         //注册点击事件
         this.gameInfoUI.infoLabel.once(Laya.Event.CLICK, this, restart);
@@ -180,11 +180,12 @@ function onLoop() {
     //Warn!! 创建出来的全是小飞机，有打不死的小飞机  哈哈 贴图错了(第一个类型参数错了)
     if (Laya.timer.currFrame % (900 - curTime) === 0) {
         createEnemy(2, 1, 1 + speedUp, 10 + hpUp * 6);
+        Laya.SoundManager.playSound("res/sound/enemy3_out.mp3");
     }
 }
 
 //掉血
-//子弹 忽略
+//子弹、道具 忽略，直接销毁隐藏
 //主角碰到敌机掉血，敌机碰到子弹掉血
 function loseHp(role, loseHp) {
     role.hp -= loseHp;
@@ -199,6 +200,8 @@ function loseHp(role, loseHp) {
         this.hero.shootInterval = 500 - 20 * (this.bulletLevel > 20 ? 20 : this.bulletLevel);
         //隐藏道具
         role.visible = false;
+
+        Laya.SoundManager.playSound("res/sound/achievement.mp3");
     }
     //吃血瓶了
     else if (role.heroType === 3) {
@@ -208,24 +211,29 @@ function loseHp(role, loseHp) {
         if (this.hero.hp > 10) this.hero.hp = 10;
         //隐藏道具
         role.visible = false;
+
+        Laya.SoundManager.playSound("res/sound/achievement.mp3");
     }
     else {
         if (role.hp > 0) {
             role.playAction("hit");
         }
         else {
-            if (role.isButtlet) {
+            if (role.heroType > 0) {
                 role.visible = false;
             }
             else {
                 role.playAction("down");
-                //击中boss
-                if (role.type === "enemy3") {
-                    var type = Math.random() < 0.7 ? 2 : 3;
-                    var item = Laya.Pool.getItemByClass("role", Role);
-                    item.init("ufo" + type, role.camp, 1, 1, 15, type);
-                    item.pos(role.x, role.y);
-                    this.roleBox.addChild(item);
+
+                if (role.type != "hero") {
+                    Laya.SoundManager.playSound("res/sound/" + role.type + "_down.mp3");
+                    if (role.type === "enemy3") {
+                        var type = Math.random() < 0.7 ? 2 : 3;
+                        var item = Laya.Pool.getItemByClass("role", Role);
+                        item.init("ufo" + type, role.camp, 1, 1, 15, type);
+                        item.pos(role.x, role.y);
+                        this.roleBox.addChild(item);
+                    }
                 }
             }
         }

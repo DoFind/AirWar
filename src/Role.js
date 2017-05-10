@@ -10,9 +10,10 @@ var Role = (function (_super) {
 
     var _proto = Role.prototype;
 
-    _proto.init = function (_type, _camp, _hp, _speed, _hitRadius, _heroType = 0) {
-        
+    _proto.init = function (_type, _camp, _hp, _speed, _hitRadius, _heroType) {
+
         //角色类型 0普通 1子弹 2炸药 3药包
+        if (!_heroType) _heroType = 0;
         this.heroType = _heroType;
 
         //飞机类型
@@ -34,8 +35,6 @@ var Role = (function (_super) {
         this.shootTime = Laya.Browser.now() + 2000;
         //当前动作
         this.action = "";
-        //是否是子弹
-        this.isBullet = false;
 
         if (!Role.cached) {
             Role.cached = true;
