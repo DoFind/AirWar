@@ -1,16 +1,14 @@
 // var Game = (function () {
 //     (function Game() {
-//子弹偏移位置
+
+//子弹偏移位置、role的hit半径
 this.bulletPos = [[0], [-15, 15], [-30, 0, 30], [-45, -15, 15, 45]];
+this.radius = [15, 30, 70];
 //关卡等级、积分成绩、升级等级所需的成绩数量、
 this.level = 0;
 this.score = 0;
 this.levelUpScore = 10;
 this.bulletLevel = 0;
-
-// this.hps = [1, 2, 10];
-// this.speeds = [3, 2, 1];
-this.radius = [15, 30, 70];
 
 //初始化引擎
 Laya.init(400, 852, Laya.WebGL);
@@ -164,11 +162,6 @@ function onLoop() {
         this.gameInfoUI.infoLabel.once(Laya.Event.CLICK, this, restart);
     }
 
-    //每隔30帧创建新的飞机
-    // if (Laya.timer.currFrame % 60 == 0) {
-    //     createEnemy(2);
-    // }
-
     //敌机的变化  创建时间间隔，飞行速度，血量，数量
     var curTime = this.level < 30 ? this.level * 2 : 60;
     var speedUp = Math.floor(this.level / 6);
@@ -233,7 +226,6 @@ function loseHp(role, loseHp) {
                     item.init("ufo" + type, role.camp, 1, 1, 15, type);
                     item.pos(role.x, role.y);
                     this.roleBox.addChild(item);
-                    // Laya.stage.addChild(item);
                 }
             }
         }
@@ -252,12 +244,6 @@ function onMouseMove() {
 function createEnemy(type, num, speed, hp) {
 
     for (var i = 0; i < num; i++) {
-        //随机出现敌人
-        //var r = Math.random();
-        //根据随机数随机敌人
-        //var type = r < 0.7 ? 0 : r < 0.95 ? 1 : 2;
-        //创建敌人
-        //var enemy = new Role();
         //从对象池创建对象
         var enemy = Laya.Pool.getItemByClass("role", Role);
         //初始化角色，并赋值
@@ -266,7 +252,6 @@ function createEnemy(type, num, speed, hp) {
         enemy.pos(Math.random() * 360 + 40, -Math.random() * 200 - 100);
         //添加到舞台
         this.roleBox.addChild(enemy);
-        // Laya.stage.addChild(enemy);
     }
 }
 // })();

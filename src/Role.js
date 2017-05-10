@@ -2,7 +2,6 @@
 var Role = (function (_super) {
     function Role() {
         Role.super(this);
-        //this.init();
     }
 
     Laya.class(Role, "Role", _super);
