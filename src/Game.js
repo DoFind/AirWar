@@ -12,6 +12,10 @@ this.bulletLevel = 0;
 
 //初始化引擎
 Laya.init(400, 852, Laya.WebGL);
+Laya.stage.scaleMode = "showall";
+Laya.stage.alignH = "center";
+Laya.stage.screenMode = "vertical";
+
 //加载图集
 Laya.loader.load("res/atlas/war.json", Laya.Handler.create(this, onLoaded), null, Laya.Loader.ATLAS);
 // })();
